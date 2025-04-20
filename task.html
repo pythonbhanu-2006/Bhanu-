@@ -1,169 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quick Habit Tracker: 3x7 Weekly Progress Grid</title>
-    <meta name="description" content="Simple web-based habit tracker for monitoring three daily habits across a week, featuring instant visual feedback and session-based progress tracking.">
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quick Habit Tracker: 3x7 Weekly Progress Grid</title>
+  <meta name="description" content="Simple web-based habit tracker with localStorage support.">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
+  <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen p-4">
-    <div id="app" class="max-w-4xl mx-auto">
-        <header class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">Quick Habit Tracker</h1>
-            <p class="text-gray-600">Track three daily habits across the week</p>
-        </header>
+  <div id="app" class="max-w-4xl mx-auto">
+    <header class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">Quick Habit Tracker</h1>
+      <p class="text-gray-600">Track three daily habits across the week</p>
+    </header>
 
-        <div class="bg-white rounded-lg shadow-lg p-6">
-            <!-- Habit Input Section -->
-            <div class="space-y-4 mb-6">
-                <div v-for="(habit, index) in habitInputs" :key="index" class="flex flex-col">
-                    <label :for="'habit'+index" class="text-sm font-medium text-gray-700 mb-1 flex justify-between">
-                        Habit {{index + 1}}
-                        <button v-if="habitInputs.length > 1" @click="removeHabit(index)" class="text-red-500 hover:text-red-700">
-                            <span>×</span>
-                        </button>
-                    </label>
-                    <input 
-                        :id="'habit'+index"
-                        v-model="habit.name"
-                        type="text"
-                        class="border rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        :placeholder="'Enter habit ' + (index + 1)"
-                    >
-                </div>
-                <button 
-                    @click="addHabit" 
-                    class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
-                >
-                    <span class="mr-1">+ Add another habit</span>
-                </button>
-                <button 
-                    @click="setHabits"
-                    class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-                    :disabled="isLoading"
-                >
-                    <span v-if="isLoading" class="inline-flex items-center">
-                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Setting habits...
-                    </span>
-                    <span v-else>Set Habits</span>
-                </button>
-            </div>
-
-            <!-- Progress Grid -->
-            <div v-if="showGrid" class="overflow-x-auto">
-                <table class="w-full border-collapse">
-                    <thead>
-                        <tr>
-                            <th class="border p-2 bg-gray-50">Habits</th>
-                            <th v-for="day in days" :key="day" class="border p-2 bg-gray-50">
-                                {{ day }}
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(habit, habitIndex) in habits" :key="habitIndex">
-                            <td class="border p-2 font-medium">{{ habit.name }}</td>
-                            <td v-for="(day, dayIndex) in days" :key="dayIndex" class="border p-2">
-                                <button 
-                                    @click="toggleHabit(habitIndex, dayIndex)"
-                                    :class="[
-                                        'w-full py-1 px-2 rounded transition-colors',
-                                        habitProgress[habitIndex][dayIndex] 
-                                            ? 'bg-green-500 text-white' 
-                                            : 'bg-gray-200 hover:bg-gray-300'
-                                    ]"
-                                >
-                                    {{ habitProgress[habitIndex][dayIndex] ? '✓' : 'Mark Done' }}
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <!-- Congratulations Message -->
-            <div v-if="showCongratulations" class="mt-6 p-4 bg-green-100 border border-green-300 rounded-md">
-                <div class="flex items-center">
-                    <span class="text-green-600 text-xl mr-2">🎉</span>
-                    <p class="text-green-800 font-medium">Congratulations! You've completed all your habits for the week!</p>
-                </div>
-                <p class="text-green-700 mt-2">Keep up the great work and maintain your streak!</p>
-            </div>
+    <div class="bg-white rounded-lg shadow-lg p-6">
+      <!-- Habit Input Section -->
+      <div class="space-y-4 mb-6">
+        <div v-for="(habit, index) in habitInputs" :key="index" class="flex flex-col">
+          <label :for="'habit'+index" class="text-sm font-medium text-gray-700 mb-1 flex justify-between">
+            Habit {{index + 1}}
+            <button v-if="habitInputs.length > 1" @click="removeHabit(index)" class="text-red-500 hover:text-red-700">
+              <span>×</span>
+            </button>
+          </label>
+          <input 
+            :id="'habit'+index"
+            v-model="habit.name"
+            type="text"
+            class="border rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            :placeholder="'Enter habit ' + (index + 1)"
+          >
         </div>
+        <button 
+          @click="addHabit" 
+          class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+        >
+          <span class="mr-1">+ Add another habit</span>
+        </button>
+        <button 
+          @click="setHabits"
+          class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+          :disabled="isLoading"
+        >
+          <span v-if="isLoading" class="inline-flex items-center">
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Setting habits...
+          </span>
+          <span v-else>Set Habits</span>
+        </button>
+      </div>
+
+      <!-- Progress Grid -->
+      <div v-if="showGrid" class="overflow-x-auto">
+        <table class="w-full border-collapse">
+          <thead>
+            <tr>
+              <th class="border p-2 bg-gray-50">Habits</th>
+              <th v-for="day in days" :key="day" class="border p-2 bg-gray-50">
+                {{ day }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(habit, habitIndex) in habits" :key="habitIndex">
+              <td class="border p-2 font-medium">{{ habit.name }}</td>
+              <td v-for="(day, dayIndex) in days" :key="dayIndex" class="border p-2">
+                <button 
+                  @click="toggleHabit(habitIndex, dayIndex)"
+                  :class="[
+                    'w-full py-1 px-2 rounded transition-colors',
+                    habitProgress[habitIndex][dayIndex] 
+                      ? 'bg-green-500 text-white' 
+                      : 'bg-gray-200 hover:bg-gray-300'
+                  ]"
+                >
+                  {{ habitProgress[habitIndex][dayIndex] ? '✓' : 'Mark Done' }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Congratulations Message -->
+      <div v-if="showCongratulations" class="mt-6 p-4 bg-green-100 border border-green-300 rounded-md">
+        <div class="flex items-center">
+          <span class="text-green-600 text-xl mr-2">🎉</span>
+          <p class="text-green-800 font-medium">Congratulations! You've completed all your habits for the week!</p>
+        </div>
+        <p class="text-green-700 mt-2">Keep up the great work and maintain your streak!</p>
+      </div>
     </div>
+  </div>
 
-    <script>
-        const { createApp, ref } = Vue;
+  <script>
+    const { createApp, ref, onMounted, watch } = Vue;
 
-        createApp({
-            setup() {
-                const habitInputs = ref([
-                    { name: '' },
-                    { name: '' },
-                    { name: '' }
-                ]);
-                const habits = ref([]);
-                const showGrid = ref(false);
-                const isLoading = ref(false);
-                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                const habitProgress = ref([]);
-                const showCongratulations = ref(false);
+    createApp({
+      setup() {
+        const habitInputs = ref([]);
+        const habits = ref([]);
+        const showGrid = ref(false);
+        const isLoading = ref(false);
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const habitProgress = ref([]);
+        const showCongratulations = ref(false);
 
-                const setHabits = () => {
-                    isLoading.value = true;
-                    setTimeout(() => {
-                        habits.value = habitInputs.value.map(h => ({ name: h.name || 'Unnamed Habit' }));
-                        habitProgress.value = Array(habitInputs.value.length).fill().map(() => Array(7).fill(false));
-                        showGrid.value = true;
-                        isLoading.value = false;
-                        showCongratulations.value = false;
-                    }, 500);
-                };
+        // Load saved data
+        onMounted(() => {
+          const savedInputs = localStorage.getItem('habitInputs');
+          const savedProgress = localStorage.getItem('habitProgress');
+          const savedHabits = localStorage.getItem('habits');
 
-                const addHabit = () => {
-                    habitInputs.value.push({ name: '' });
-                };
-                
-                const removeHabit = (index) => {
-                    habitInputs.value.splice(index, 1);
-                };
+          if (savedInputs && savedProgress && savedHabits) {
+            habitInputs.value = JSON.parse(savedInputs);
+            habitProgress.value = JSON.parse(savedProgress);
+            habits.value = JSON.parse(savedHabits);
+            showGrid.value = true;
+            checkAllCompleted();
+          } else {
+            habitInputs.value = [{ name: '' }, { name: '' }, { name: '' }];
+          }
+        });
 
-                const toggleHabit = (habitIndex, dayIndex) => {
-                    habitProgress.value[habitIndex][dayIndex] = !habitProgress.value[habitIndex][dayIndex];
-                    checkAllCompleted();
-                };
-                
-                const checkAllCompleted = () => {
-                    if (habitProgress.value.length === 0) return;
-                    
-                    const allCompleted = habitProgress.value.every(habitRow => 
-                        habitRow.every(day => day === true)
-                    );
-                    
-                    showCongratulations.value = allCompleted;
-                };
+        const setHabits = () => {
+          isLoading.value = true;
+          setTimeout(() => {
+            habits.value = habitInputs.value.map(h => ({ name: h.name || 'Unnamed Habit' }));
+            habitProgress.value = Array(habitInputs.value.length).fill().map(() => Array(7).fill(false));
+            showGrid.value = true;
+            isLoading.value = false;
+            showCongratulations.value = false;
+            saveToLocalStorage();
+          }, 500);
+        };
 
-                return {
-                    habitInputs,
-                    habits,
-                    showGrid,
-                    isLoading,
-                    days,
-                    habitProgress,
-                    setHabits,
-                    toggleHabit,
-                    addHabit,
-                    showCongratulations,
-                    removeHabit
-                };
-            }
-        }).mount('#app');
-    </script>
+        const addHabit = () => {
+          habitInputs.value.push({ name: '' });
+        };
+
+        const removeHabit = (index) => {
+          habitInputs.value.splice(index, 1);
+        };
+
+        const toggleHabit = (habitIndex, dayIndex) => {
+          habitProgress.value[habitIndex][dayIndex] = !habitProgress.value[habitIndex][dayIndex];
+          checkAllCompleted();
+          saveToLocalStorage();
+        };
+
+        const checkAllCompleted = () => {
+          if (habitProgress.value.length === 0) return;
+          const allCompleted = habitProgress.value.every(habitRow => habitRow.every(day => day === true));
+          showCongratulations.value = allCompleted;
+        };
+
+        const saveToLocalStorage = () => {
+          localStorage.setItem('habitInputs', JSON.stringify(habitInputs.value));
+          localStorage.setItem('habits', JSON.stringify(habits.value));
+          localStorage.setItem('habitProgress', JSON.stringify(habitProgress.value));
+        };
+
+        watch(habitInputs, saveToLocalStorage, { deep: true });
+
+        return {
+          habitInputs,
+          habits,
+          showGrid,
+          isLoading,
+          days,
+          habitProgress,
+          setHabits,
+          toggleHabit,
+          addHabit,
+          showCongratulations,
+          removeHabit
+        };
+      }
+    }).mount('#app');
+  </script>
 </body>
 </html>
